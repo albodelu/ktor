@@ -6,15 +6,14 @@ import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.util.*
 import io.ktor.util.date.*
-import kotlin.coroutines.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.io.*
 import kotlinx.io.core.*
 import platform.Foundation.*
 import platform.darwin.*
+import kotlin.coroutines.*
 
 class IosClientEngine(override val config: HttpClientEngineConfig) : HttpClientEngine {
     private val context: Job = Job()

@@ -1,0 +1,24 @@
+kotlin {
+    targets {
+        def current = [iosX64, iosArm64, macosX64]
+        if (project.ext.isLinuxHost) current = [linuxX64, mingwX64]
+        if (project.ext.ideaActive) current.add(posix)
+
+        configure(current) {
+            compilations.main.cinterops {
+                libcurl {
+                    defFile 'posix/interop/libcurl.def'
+                    includeDirs.headerFilterOnly '/opt/local/include', '/usr/local/include', '/usr/include', '/usr/include/x86_64-linux-gnu', '/usr/local/Cellar/curl/7.62.0/include'
+                }
+            }
+        }
+    }
+
+    sourceSets {
+        posixMain {
+            dependencies {
+                api project(':ktor-client:ktor-client-core')
+            }
+        }
+    }
+}
