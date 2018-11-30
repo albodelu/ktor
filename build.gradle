@@ -37,6 +37,8 @@ def projectNeedsPlatform(project, platform) {
     def hasPosix = files.any { it.name == "posix" }
     def hasDarwin = files.any { it.name == "darwin" }
 
+    if (platform == "common") return true
+
     if (hasPosix && hasDarwin) return false
     if (!hasDarwin && platform == "darwin") return false
 

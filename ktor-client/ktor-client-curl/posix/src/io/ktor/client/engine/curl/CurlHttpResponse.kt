@@ -16,6 +16,5 @@ class CurlHttpResponse(
     override val coroutineContext: CoroutineContext,
     override val version: HttpProtocolVersion = HttpProtocolVersion.HTTP_1_1
 ) : HttpResponse {
-
     override val responseTime: GMTDate = GMTDate()
 }

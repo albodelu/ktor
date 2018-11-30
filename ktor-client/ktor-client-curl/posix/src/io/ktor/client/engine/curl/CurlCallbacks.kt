@@ -3,7 +3,12 @@ package io.ktor.client.engine.curl
 import kotlinx.cinterop.*
 import platform.posix.*
 
-internal fun headerCallback(buffer: CPointer<ByteVar>?, size: size_t, nitems: size_t, userdata: COpaquePointer?): Long {
+internal fun headerCallback(
+    buffer: CPointer<ByteVar>?,
+    size: size_t,
+    nitems: size_t,
+    userdata: COpaquePointer?
+): Long {
     if (buffer == null) return 0L
     val responseData = userdata!!.fromCPointer<CurlResponseData>()
     responseData.headers.add(buffer.readBytes((size * nitems).toInt()))

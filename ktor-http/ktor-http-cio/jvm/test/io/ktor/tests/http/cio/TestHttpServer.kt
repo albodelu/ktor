@@ -1,10 +1,11 @@
 package io.ktor.tests.http.cio
 
-import io.ktor.http.cio.*
+import HttpRequestHandler
 import io.ktor.http.cio.internals.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import kotlinx.coroutines.io.ByteChannel
+import startConnectionPipeline
 import java.net.*
 import java.nio.channels.*
 import java.util.concurrent.*
@@ -98,7 +99,15 @@ private suspend fun client(socket: SocketChannel, ioCoroutineContext: CoroutineC
 
     val timeouts = WeakTimeoutQueue(TimeUnit.HOURS.toMillis(1000))
     @Suppress("DEPRECATION")
-    startConnectionPipeline(incoming, outgoing, null, ioCoroutineContext, callDispatcher, timeouts, handler).invokeOnCompletion {
+    startConnectionPipeline(
+        incoming,
+        outgoing,
+        null,
+        ioCoroutineContext,
+        callDispatcher,
+        timeouts,
+        handler
+    ).invokeOnCompletion {
         incoming.close()
         outgoing.close()
     }

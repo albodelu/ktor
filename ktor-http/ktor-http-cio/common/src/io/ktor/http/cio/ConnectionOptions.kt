@@ -9,7 +9,12 @@ import io.ktor.http.cio.internals.*
  * @property upgrade `true` for `Connection: upgrade`
  * @property extraOptions a list of extra connection header options other than close, keep-alive and upgrade
  */
-class ConnectionOptions(val close: Boolean = false, val keepAlive: Boolean = false, val upgrade: Boolean = false, val extraOptions: List<String> = emptyList()) {
+class ConnectionOptions(
+    val close: Boolean = false,
+    val keepAlive: Boolean = false,
+    val upgrade: Boolean = false,
+    val extraOptions: List<String> = emptyList()
+) {
     companion object {
         /**
          * An instance for `Connection: close`
@@ -27,7 +32,10 @@ class ConnectionOptions(val close: Boolean = false, val keepAlive: Boolean = fal
         val Upgrade = ConnectionOptions(upgrade = true)
 
         private val knownTypes = AsciiCharTree.build(
-                listOf("close" to Close, "keep-alive" to KeepAlive, "upgrade" to Upgrade), { it.first.length }, { t, idx -> t.first[idx] })
+            listOf("close" to Close, "keep-alive" to KeepAlive, "upgrade" to Upgrade),
+            { it.first.length },
+            { t, idx -> t.first[idx] }
+        )
 
         /**
          * Parse `Connection` header value
@@ -62,7 +70,9 @@ class ConnectionOptions(val close: Boolean = false, val keepAlive: Boolean = fal
                     idx++
                 }
 
-                val detected = knownTypes.search(connection, start, idx, lowerCase = true, stopPredicate = { _, _ -> false }).singleOrNull()
+                val detected = knownTypes
+                    .search(connection, start, idx, lowerCase = true, stopPredicate = { _, _ -> false })
+                    .singleOrNull()
                 when {
                     detected == null -> {
                         if (hopHeadersList == null) {
@@ -73,10 +83,12 @@ class ConnectionOptions(val close: Boolean = false, val keepAlive: Boolean = fal
                     }
                     connectionOptions == null -> connectionOptions = detected.second
                     else -> {
-                        connectionOptions = ConnectionOptions(close = connectionOptions.close || detected.second.close,
-                                keepAlive = connectionOptions.keepAlive || detected.second.keepAlive,
-                                upgrade = connectionOptions.upgrade || detected.second.upgrade,
-                                extraOptions = emptyList())
+                        connectionOptions = ConnectionOptions(
+                            close = connectionOptions.close || detected.second.close,
+                            keepAlive = connectionOptions.keepAlive || detected.second.keepAlive,
+                            upgrade = connectionOptions.upgrade || detected.second.upgrade,
+                            extraOptions = emptyList()
+                        )
                     }
                 }
             }
@@ -84,22 +96,25 @@ class ConnectionOptions(val close: Boolean = false, val keepAlive: Boolean = fal
             if (connectionOptions == null) connectionOptions = KeepAlive
 
             return if (hopHeadersList == null) connectionOptions
-            else ConnectionOptions(connectionOptions.close, connectionOptions.keepAlive, connectionOptions.upgrade, hopHeadersList)
+            else ConnectionOptions(
+                connectionOptions.close,
+                connectionOptions.keepAlive,
+                connectionOptions.upgrade,
+                hopHeadersList
+            )
         }
     }
 
-    override fun toString(): String {
-        return when {
-            extraOptions.isEmpty() -> {
-                when {
-                    close && !keepAlive && !upgrade -> "close"
-                    !close && keepAlive && !upgrade -> "keep-alive"
-                    !close && keepAlive && upgrade -> "keep-alive, Upgrade"
-                    else -> buildToString()
-                }
+    override fun toString(): String = when {
+        extraOptions.isEmpty() -> {
+            when {
+                close && !keepAlive && !upgrade -> "close"
+                !close && keepAlive && !upgrade -> "keep-alive"
+                !close && keepAlive && upgrade -> "keep-alive, Upgrade"
+                else -> buildToString()
             }
-            else -> buildToString()
         }
+        else -> buildToString()
     }
 
     private fun buildToString() = buildString {
@@ -117,7 +132,7 @@ class ConnectionOptions(val close: Boolean = false, val keepAlive: Boolean = fal
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (javaClass != other?.javaClass) return false
+        if (other == null || this::class != other::class) return false
 
         other as ConnectionOptions
 

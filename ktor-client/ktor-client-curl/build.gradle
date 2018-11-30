@@ -20,5 +20,10 @@ kotlin {
                 api project(':ktor-client:ktor-client-core')
             }
         }
+        posixTest {
+            dependencies {
+                api project(':ktor-client:ktor-client-features:ktor-client-logging')
+            }
+        }
     }
 }

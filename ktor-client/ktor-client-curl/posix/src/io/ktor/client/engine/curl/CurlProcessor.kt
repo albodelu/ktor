@@ -1,20 +1,18 @@
 package io.ktor.client.engine.curl
 
-import io.ktor.http.*
-import io.ktor.http.content.*
-import kotlinx.cinterop.*
 import kotlin.native.concurrent.*
-import platform.posix.*
-import libcurl.*
+
+
+// Only set in curl thread
+@ThreadLocal
+private var curlState: CurlState? = null
 
 internal class CurlProcessor : WorkerProcessor<CurlRequest, CurlResponse>() {
     fun start() {
-        worker.execute(TransferMode.SAFE, { "dummy" }, {
-            if (curlState == null)
-                curlState = CurlState()
-            else
-                throw CurlEngineCreationException("An attempt to initialize curl twice.")
-        })
+        worker.execute(TransferMode.SAFE, { "dummy" }) {
+            check(curlState == null)
+            curlState = CurlState()
+        }
     }
 
     fun requestJob(request: CurlRequest) {
@@ -22,13 +20,9 @@ internal class CurlProcessor : WorkerProcessor<CurlRequest, CurlResponse>() {
     }
 
     fun close() {
-        worker.execute(TransferMode.SAFE, { "dummy" }, { curlState!!.close() })
+        worker.execute(TransferMode.SAFE, { "dummy" }) { curlState!!.close() }
     }
 }
-
-// Only set in curl thread
-@ThreadLocal
-private var curlState: CurlState? = null
 
 internal fun curlUpdate(request: CurlRequest): CurlResponse {
     request.newRequests.forEach {
@@ -36,6 +30,5 @@ internal fun curlUpdate(request: CurlRequest): CurlResponse {
     }
 
     val readyResponses = curlState!!.singleIteration(100)
-
     return CurlResponse(readyResponses, request.listenerKey).freeze()
 }

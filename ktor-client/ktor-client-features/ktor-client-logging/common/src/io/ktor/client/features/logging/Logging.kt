@@ -105,7 +105,7 @@ class Logging(
         }
     }
 
-    companion object : HttpClientFeature<Config, Logging> {
+    companion object Feature : HttpClientFeature<Config, Logging> {
         override val key: AttributeKey<Logging> = AttributeKey("ClientLogging")
 
         override fun prepare(block: Config.() -> Unit): Logging {

@@ -11,34 +11,26 @@ import kotlin.collections.*
 import kotlin.coroutines.*
 
 class CurlClientEngine(override val config: CurlClientEngineConfig) : HttpClientEngine {
-
     override val dispatcher: CoroutineDispatcher = Dispatchers.Unconfined
-
     override val coroutineContext: CoroutineContext = dispatcher + SupervisorJob()
 
     private val curlProcessor = CurlProcessor()
+
+    private val responseConsumers: MutableMap<CurlRequestData, (CurlResponseData) -> Unit> = mutableMapOf()
+
+    private val listener = object : WorkerListener<CurlResponse> {
+        override fun update(data: CurlResponse) {
+            data.completeResponses.forEach {
+                val consumer = responseConsumers[it.request]!!
+                consumer(it)
+            }
+        }
+    }
 
     init {
         curlProcessor.start()
         launch(coroutineContext) {
             loop(curlProcessor)
-        }
-    }
-
-    override fun close() {
-        curlProcessor.close()
-        coroutineContext.cancel()
-    }
-
-    private val responseConsumers: MutableMap<CurlRequestData, (CurlResponseData) -> Unit> =
-        mutableMapOf<CurlRequestData, (CurlResponseData) -> Unit>()
-
-    private val listener = object : WorkerListener<CurlResponse> {
-        override fun update(curlResponse: CurlResponse) {
-            curlResponse.completeResponses.forEach {
-                val consumer = responseConsumers[it.request]!!
-                consumer(it)
-            }
         }
     }
 
@@ -51,15 +43,12 @@ class CurlClientEngine(override val config: CurlClientEngineConfig) : HttpClient
         val requestTime = GMTDate()
 
         val curlRequest = request.toCurlRequest()
-
         curlProcessor.addListener(curlRequest.listenerKey, listener)
 
         responseConsumers[curlRequest.newRequests.single()] = { curlResponseData ->
-
             val headers = curlResponseData.headers.parseResponseHeaders()
 
             val responseContext = writer(dispatcher, autoFlush = true) {
-
                 for (chunk in curlResponseData.chunks) {
                     channel.writeFully(chunk, 0, chunk.size)
                 }
@@ -89,5 +78,10 @@ class CurlClientEngine(override val config: CurlClientEngineConfig) : HttpClient
         eventLoopIteration(curlProcessor)
         delay(config.workerNextIterationDelay)
         loop(curlProcessor)
+    }
+
+    override fun close() {
+        curlProcessor.close()
+        coroutineContext.cancel()
     }
 }

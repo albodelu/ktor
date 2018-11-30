@@ -33,7 +33,14 @@ class HttpHeadersMap internal constructor(private val builder: CharBufferBuilder
 
     private var indexes = IntArrayPool.borrow()
 
-    fun put(nameHash: Int, valueHash: Int, nameStartIndex: Int, nameEndIndex: Int, valueStartIndex: Int, valueEndIndex: Int) {
+    fun put(
+        nameHash: Int,
+        valueHash: Int,
+        nameStartIndex: Int,
+        nameEndIndex: Int,
+        valueStartIndex: Int,
+        valueEndIndex: Int
+    ) {
         val base = size * HEADER_SIZE
         val array = indexes
 
@@ -78,9 +85,9 @@ class HttpHeadersMap internal constructor(private val builder: CharBufferBuilder
     fun getAll(name: String): Sequence<CharSequence> {
         val nameHash = name.hashCodeLowerCase()
         return generateSequence(0) { if (it + 1 >= size) null else it + 1 }
-                .map { it * HEADER_SIZE }
-                .filter { indexes[it] == nameHash }
-                .map { builder.subSequence(indexes[it + 4], indexes[it + 5]) }
+            .map { it * HEADER_SIZE }
+            .filter { indexes[it] == nameHash }
+            .map { builder.subSequence(indexes[it + 4], indexes[it + 5]) }
     }
 
     fun nameAt(idx: Int): CharSequence {

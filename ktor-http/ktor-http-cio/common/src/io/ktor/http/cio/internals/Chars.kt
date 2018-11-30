@@ -2,7 +2,6 @@ package io.ktor.http.cio.internals
 
 import io.ktor.http.*
 import kotlinx.io.core.*
-import java.nio.*
 
 internal fun CharSequence.hashCodeLowerCase(start: Int = 0, end: Int = length): Int {
     var hashCode = 0
@@ -15,7 +14,7 @@ internal fun CharSequence.hashCodeLowerCase(start: Int = 0, end: Int = length): 
 }
 
 internal fun CharSequence.equalsLowerCase(start: Int = 0, end: Int = length, other: CharSequence): Boolean {
-    if  (end - start != other.length) return false
+    if (end - start != other.length) return false
 
     for (pos in start until end) {
         if (get(pos).toInt().toLowerCase() != other.get(pos - start).toInt().toLowerCase()) return false
@@ -25,7 +24,8 @@ internal fun CharSequence.equalsLowerCase(start: Int = 0, end: Int = length, oth
 }
 
 @Suppress("NOTHING_TO_INLINE")
-private inline fun Int.toLowerCase() = if (this in 'A'.toInt() .. 'Z'.toInt()) 'a'.toInt() + (this - 'A'.toInt()) else this
+private inline fun Int.toLowerCase() =
+    if (this in 'A'.toInt()..'Z'.toInt()) 'a'.toInt() + (this - 'A'.toInt()) else this
 
 internal val DefaultHttpMethods =
     AsciiCharTree.build(HttpMethod.DefaultMethods, { it.value.length }, { m, idx -> m.value[idx] })
@@ -40,7 +40,7 @@ private val HexTable = (0..0xff).map { v ->
     }
 }.toTypedArray()
 
-private val HexLetterTable = (0..0xf).map {
+internal val HexLetterTable = (0..0xf).map {
     if (it < 0xa) (0x30 + it).toByte() else ('a' + it - 0x0a).toInt().toByte()
 }.toTypedArray()
 
@@ -84,23 +84,6 @@ private fun CharSequence.parseDecLongWithCheck(): Long {
     }
 
     return result
-}
-
-internal fun ByteBuffer.writeIntHex(value: Int): Int {
-    require(value > 0) { "Does only work for positive numbers" } // zero is not included!
-    var current = value
-    var zeroes = 0
-    val table = HexLetterTable
-
-    repeat(8) { idx ->
-        val v = current and 0x0f
-        if (v == 0) zeroes++ else zeroes = 0
-        current = current ushr 4
-
-        put(7 - idx, table[v])
-    }
-
-    return zeroes
 }
 
 internal fun IoBuffer.writeIntHex(value: Int) {

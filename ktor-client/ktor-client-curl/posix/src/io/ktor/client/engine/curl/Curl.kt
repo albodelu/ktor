@@ -14,7 +14,7 @@ private val curlGlobalInitReturnCode = curl_global_init(CURL_GLOBAL_ALL.toLong()
 object Curl : HttpClientEngineFactory<HttpClientEngineConfig> {
 
     override fun create(block: HttpClientEngineConfig.() -> Unit): HttpClientEngine {
-        if (curlGlobalInitReturnCode != 0U) throw CurlEngineCreationException("curl_global_init() returned non-zero code")
+        if (curlGlobalInitReturnCode != 0U) throw CurlEngineCreationException("curl_global_init() returned non-zero verify")
         return CurlClientEngine(CurlClientEngineConfig().apply(block))
     }
 }

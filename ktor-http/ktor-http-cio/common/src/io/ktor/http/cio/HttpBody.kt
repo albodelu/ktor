@@ -4,7 +4,6 @@ import io.ktor.http.*
 import io.ktor.http.cio.internals.*
 import io.ktor.util.*
 import kotlinx.coroutines.io.*
-import java.io.*
 
 /**
  * @return `true` if an http upgrade is expected accoding to request [method], [upgrade] header value and
@@ -40,19 +39,10 @@ fun expectHttpBody(
     connectionOptions: ConnectionOptions?,
     contentType: CharSequence?
 ): Boolean {
-    if (method == HttpMethod.Get ||
-        method == HttpMethod.Head ||
-        method == HttpMethod.Options
-    ) {
-        return false
-    }
+    if (method == HttpMethod.Get || method == HttpMethod.Head || method == HttpMethod.Options) return false
 
-    if (transferEncoding != null) return true
-    if (connectionOptions?.close == true) return true
-    if (contentLength != -1L) {
-        return contentLength > 0L
-    }
-
+    if (transferEncoding != null || connectionOptions?.close == true) return true
+    if (contentLength != -1L) return contentLength > 0L
     if (contentType != null) return true
 
     return false
@@ -88,7 +78,7 @@ suspend fun parseHttpBody(
             transferEncoding.equalsLowerCase(other = "identity") -> {
                 // do nothing special
             }
-            else -> out.close(IOException("Unsupported transfer-encoding $transferEncoding"))
+            else -> out.close(IllegalStateException("Unsupported transfer-encoding $transferEncoding"))
             // TODO: combined transfer encodings
         }
     }
@@ -103,13 +93,15 @@ suspend fun parseHttpBody(
         return
     }
 
-    out.close(
-        IOException(
-            "Failed to parse request body: request body length should be specified, " +
-                "chunked transfer encoding should be used or " +
-                "keep-alive should be disabled (connection: close)"
-        )
+    val cause = IllegalStateException(
+        """
+            Failed to parse request body: request body length should be specified,
+            chunked transfer encoding should be used or
+            keep-alive should be disabled (connection: close)
+        """.trimIndent()
     )
+
+    out.close(cause)
 }
 
 /**
@@ -117,7 +109,11 @@ suspend fun parseHttpBody(
  * writing it to [out]. Usually doesn't fail but closing [out] channel with error.
  */
 @KtorExperimentalAPI
-suspend fun parseHttpBody(headers: HttpHeadersMap, input: ByteReadChannel, out: ByteWriteChannel): Unit = parseHttpBody(
+suspend fun parseHttpBody(
+    headers: HttpHeadersMap,
+    input: ByteReadChannel,
+    out: ByteWriteChannel
+): Unit = parseHttpBody(
     headers["Content-Length"]?.parseDecLong() ?: -1,
     headers["Transfer-Encoding"],
     ConnectionOptions.parse(headers["Connection"]),

@@ -2,14 +2,15 @@ package io.ktor.http.cio
 
 import io.ktor.http.*
 import io.ktor.http.cio.internals.*
-import java.io.*
+import kotlinx.io.core.*
 
 /**
  * Represents a base HTTP message type for request and response
  * @property headers request/response headers
  */
-abstract class HttpMessage internal constructor(val headers: HttpHeadersMap, private val builder: CharBufferBuilder) :
-    Closeable {
+abstract class HttpMessage internal constructor(
+    val headers: HttpHeadersMap, private val builder: CharBufferBuilder
+) : Closeable {
 
     /**
      * Release all memory resources hold by this message

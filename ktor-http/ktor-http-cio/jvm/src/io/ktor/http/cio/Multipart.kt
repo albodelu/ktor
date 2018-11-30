@@ -82,7 +82,13 @@ suspend fun parsePreamble(
     output: BytePacketBuilder,
     limit: Long = Long.MAX_VALUE
 ): Long {
-    return copyUntilBoundary("preamble/prologue", boundaryPrefixed, input, { output.writeFully(it) }, limit)
+    return copyUntilBoundary(
+        "preamble/prologue",
+        boundaryPrefixed,
+        input,
+        { output.writeFully(it) },
+        limit
+    )
 }
 
 /**

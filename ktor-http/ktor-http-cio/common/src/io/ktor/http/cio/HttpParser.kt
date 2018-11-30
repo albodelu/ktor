@@ -29,7 +29,12 @@ suspend fun parseRequest(input: ByteReadChannel): Request? {
             val version = parseVersion(builder, range)
             skipSpaces(builder, range)
 
-            if (range.start != range.end) throw ParserException("Extra characters in request line: ${builder.substring(range.start, range.end)}")
+            if (range.start != range.end) throw ParserException(
+                "Extra characters in request line: ${builder.substring(
+                    range.start,
+                    range.end
+                )}"
+            )
             if (uri.isEmpty()) throw ParserException("URI is not specified")
             if (version.isEmpty()) throw ParserException("HTTP version is not specified")
 
@@ -72,7 +77,11 @@ suspend fun parseResponse(input: ByteReadChannel): Response? {
 /**
  * Parse HTTP headers. Not applicable to request and response status lines.
  */
-suspend fun parseHeaders(input: ByteReadChannel, builder: CharBufferBuilder, range: MutableRange = MutableRange(0, 0)): HttpHeadersMap? {
+suspend fun parseHeaders(
+    input: ByteReadChannel,
+    builder: CharBufferBuilder,
+    range: MutableRange = MutableRange(0, 0)
+): HttpHeadersMap? {
     val headers = HttpHeadersMap(builder)
 
     try {
@@ -96,7 +105,12 @@ suspend fun parseHeaders(input: ByteReadChannel, builder: CharBufferBuilder, ran
 
             skipSpacesAndColon(builder, range)
             if (range.start == range.end) {
-                throw ParserException("No HTTP header value provided for name ${builder.substring(nameStart, nameEnd)}: \n$builder")
+                throw ParserException(
+                    "No HTTP header value provided for name ${builder.substring(
+                        nameStart,
+                        nameEnd
+                    )}: \n$builder"
+                )
             }
 
             // TODO check for trailing spaces in HTTP spec
@@ -175,7 +189,8 @@ private fun parseStatusCode(text: CharSequence, range: MutableRange): Int {
         } else if (ch in '0'..'9') {
             status = status * 10 + (ch - '0')
         } else {
-            throw NumberFormatException("Illegal digit $ch in status code ${text.substring(range.start, findSpaceOrEnd(text, range))}")
+            val code = text.substring(range.start, findSpaceOrEnd(text, range))
+            throw NumberFormatException("Illegal digit $ch in status code $code")
         }
     }
 

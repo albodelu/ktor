@@ -2,21 +2,21 @@ package io.ktor.client.engine.curl
 
 import kotlin.native.concurrent.*
 
-class ListenerKey
+internal class ListenerKey
 
-interface WorkerRequest {
+internal interface WorkerRequest {
     val listenerKey: ListenerKey
 }
 
-interface WorkerResponse {
+internal interface WorkerResponse {
     val listenerKey: ListenerKey
 }
 
-interface WorkerListener<R : WorkerResponse> {
+internal interface WorkerListener<R : WorkerResponse> {
     fun update(data: R)
 }
 
-open class WorkerProcessor<Q : WorkerRequest, R : WorkerResponse> {
+internal open class WorkerProcessor<Q : WorkerRequest, R : WorkerResponse> {
     private val listeners = mutableMapOf<ListenerKey, WorkerListener<R>>()
     protected val worker = Worker.start()
     protected val pendingFutures = mutableSetOf<Future<R>>()
